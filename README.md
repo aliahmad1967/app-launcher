@@ -5,7 +5,7 @@
 
 Creating a Custom App Grid Launcher in Windows 11
 
-# How to Use This on Your Windows 11 PC:
+## How to Use This on Your Windows 11 PC:
 Save the HTML file:
 
 Copy the entire code above
