@@ -1,6 +1,7 @@
 # app-launcher
 
-https://github.com/aliahmad1967/app-launcher/blob/main/Screenshot%202025-05-17%20140317.png
+
+![Screenshot 2025-05-17 140317](https://github.com/user-attachments/assets/86ee7df3-2192-4179-b155-1cb83f7d852b)
 
 Creating a Custom App Grid Launcher in Windows 11
 
