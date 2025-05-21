@@ -14,5 +14,6 @@ Paste the code and save it as "app-launcher.html" (make sure it's saved with the
 Set it as your browser homepage:
 
 In Edge: Settings → Start, home, and new tabs → When Edge starts → Open these pages → Add a new page → Enter the file path (file:///C:/path/to/your/app-launcher.html)
+
 In Chrome: Settings → On startup → Open a specific page → Add a new page → Enter the file path
 
