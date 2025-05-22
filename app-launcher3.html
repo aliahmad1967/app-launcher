@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A modern application launcher with search functionality and categorized apps" />
+  <title>Modern App Launcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --text-color: #ffffff;
+      --secondary-text: #a0a0a0;
+      --card-hover: rgba(255, 255, 255, 0.1);
+      --search-bg: #2a2a2a;
+      --search-focus: #333;
+      --shadow-color: rgba(0, 0, 0, 0.2);
+      --header-color: #ffffff;
+      --category-bg: rgba(255, 255, 255, 0.05);
+      --category-text: #ffffff;
+    }
+
+    .light-mode {
+      --bg-color: #f5f5f5;
+      --text-color: #333333;
+      --secondary-text: #666666;
+      --card-hover: rgba(0, 0, 0, 0.05);
+      --search-bg: #ffffff;
+      --search-focus: #f0f0f0;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --header-color: #333333;
+      --category-bg: rgba(0, 0, 0, 0.05);
+      --category-text: #333333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: "Inter", sans-serif;
+      padding: 30px;
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden; /* For parallax */
+      position: relative; /* For parallax pseudo-element */
+    }
+
+    body::before { /* Parallax Background */
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, rgba(26, 26, 26, 0.95) 0%, rgba(51, 51, 51, 0.9) 100%), 
+                  url('https://source.unsplash.com/random/1600x900?abstract,space'); /* Example background */
+      background-size: cover;
+      background-attachment: fixed; /* Key for parallax */
+      z-index: -1; /* Behind all content */
+      transition: background 0.3s ease; /* For theme toggle */
+    }
+
+    .light-mode body::before {
+        background: linear-gradient(45deg, rgba(245, 245, 245, 0.95) 0%, rgba(220, 220, 220, 0.9) 100%),
+                    url('https://source.unsplash.com/random/1600x900?abstract,light');
+        background-size: cover;
+        background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--header-color);
+      letter-spacing: -0.5px;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      background-color: var(--search-bg);
+      transition: background-color 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--card-hover);
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .search-container {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+
+    #search-input {
+      width: 100%;
+      max-width: 500px;
+      padding: 12px 20px;
+      padding-left: 45px;
+      border-radius: 50px;
+      border: none;
+      background-color: var(--search-bg);
+      color: var(--text-color);
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px var(--shadow-color);
+    }
+
+    #search-input:focus {
+      background-color: var(--search-focus);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: calc(50% - 230px);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary-text);
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (max-width: 550px) {
+      .search-icon {
+        left: 15px;
+      }
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .category-btn {
+      background-color: var(--category-bg);
+      color: var(--category-text);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .category-btn:hover,
+    .category-btn.active {
+      background-color: var(--card-hover);
+      transform: translateY(-2px);
+    }
+
+    .category-btn:focus {
+      outline: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .category-btn.active {
+      font-weight: 600;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .grid-item {
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease; /* Updated transition */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      min-height: 100px;
+      position: relative;
+      padding: 20px 10px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      outline: none;
+    }
+
+    .grid-item:hover,
+    .grid-item:focus {
+      transform: perspective(1000px) rotateX(5deg) rotateY(2deg) scale(1.05); /* 3D Tilt */
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3), 0 0 15px var(--card-hover); /* Enhanced shadow/glow */
+    }
+
+    .grid-item:focus {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+      transform: perspective(1000px) rotateX(5deg) rotateY(2deg) scale(1.05); /* Keep effect on focus */
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3), 0 0 15px var(--card-hover); /* Keep effect on focus */
+    }
+
+    .grid-item.dragging {
+      opacity: 0.4 !important; 
+      cursor: grabbing !important;
+      transform: scale(1.02); 
+    }
+
+    .drag-placeholder {
+      border-radius: 12px;
+      border: 2px dashed var(--secondary-text, #a0a0a0); 
+      background-color: rgba(255,255,255,0.03);
+      min-height: 100px; 
+      box-sizing: border-box;
+      display: flex; /* Allows it to take space in the grid */
+      width: 100%; 
+      height: 100px; /* Fallback, JS will try to set this */
+      align-self: stretch; 
+      justify-self: stretch;
+      margin: 0; 
+    }
+    .light-mode .drag-placeholder {
+        background-color: rgba(0,0,0,0.03);
+        border-color: var(--secondary-text, #666666);
+    }
+
+    .icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .grid-item span {
+      color: var(--text-color);
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .grid-item:hover .tooltip {
+      opacity: 1;
+      visibility: visible;
+      bottom: -30px;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--secondary-text);
+      font-size: 14px;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 30px;
+      color: var(--secondary-text);
+      font-size: 16px;
+      grid-column: 1 / -1;
+      display: none;
+    }
+
+    /* Specific colors for each site */
+    .gemini {
+      background-color: #246bfd;
+    }
+
+    .chatgpt {
+      background-color: #10a37f;
+    }
+
+    .perplexity {
+      background-color: #000000;
+    }
+
+    .manus {
+      background-color: #f9a800;
+    }
+
+    .notion {
+      background-color: #000000;
+    }
+
+    .canva {
+      background-color: #00c4cc;
+    }
+
+    .openai {
+      background-color: #000000;
+    }
+
+    .krea {
+      background-color: #9747ff;
+    }
+
+    .bolt {
+      background-color: #275a6f;
+    }
+
+    .fluxpro {
+      background-color: #d946ef;
+    }
+
+    .sora {
+      background-color: #2f2f2f;
+    }
+
+    .magi {
+      background-color: #6366f1;
+    }
+
+    .felo {
+      background-color: #3b82f6;
+    }
+
+    .google {
+      background-color: #4285f4;
+    }
+
+    .microsoft {
+      background-color: #00a4ef;
+    }
+
+    .github {
+      background-color: #181717;
+    }
+
+    .gitmcp {
+      background: linear-gradient(45deg,
+          #2883ff 0%,
+          #57bbb4 25%,
+          #a16af6 50%,
+          #cc2366 75%,
+          #101828 100%);
+    }
+
+    .netflix {
+      background-color: #e50914;
+    }
+
+    .amazon {
+      background-color: #ff9900;
+    }
+
+    .vodu {
+      background-color: #ff0000;
+    }
+
+    .twitter {
+      background-color: #1da1f2;
+    }
+
+    .instagram {
+      background: linear-gradient(45deg,
+          #f09433 0%,
+          #e6683c 25%,
+          #dc2743 50%,
+          #cc2366 75%,
+          #bc1888 100%);
+    }
+
+    .linkedin {
+      background-color: #0077b5;
+    }
+
+    .discord {
+      background-color: #5865f2;
+    }
+
+    .huggingface {
+      background-color: #fcce1e;
+    }
+
+    .leonardo {
+      background-color: #b467eb;
+    }
+
+    .pinecone {
+      background-color: #222160;
+    }
+
+    .bolt-new {
+      background-color: #1e88e5;
+    }
+
+    .dataset-search {
+      background-color: #4285f4;
+    }
+
+    .deepseek {
+      background-color: #6200ea;
+    }
+
+    .lovable {
+      background-color: #ff4081;
+    }
+
+    .react {
+      background-color: #61dafb;
+    }
+
+    .bootstrap {
+      background-color: #7952b3;
+    }
+
+    .cloudflare {
+      background-color: #f38020;
+    }
+
+    .qwen {
+      background-color: #00bfa5;
+    }
+
+    .suno {
+      background-color: #ff9800;
+    }
+
+    .streamlit {
+      background-color: #ff4b4b;
+    }
+
+    .tashkeel {
+      background-color: #2e7d32;
+    }
+
+    .araby {
+      background-color: #00796b;
+    }
+
+    .code2tutorial {
+      background-color: #ff5722;
+    }
+
+    /* Animation for grid items */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .grid-item {
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    /* Staggered animation delay for grid items */
+    .grid-item:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .grid-item:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .grid-item:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .grid-item:nth-child(4) {
+      animation-delay: 0.2s;
+    }
+
+    .grid-item:nth-child(5) {
+      animation-delay: 0.25s;
+    }
+
+    .grid-item:nth-child(6) {
+      animation-delay: 0.3s;
+    }
+
+    .grid-item:nth-child(7) {
+      animation-delay: 0.35s;
+    }
+
+    .grid-item:nth-child(8) {
+      animation-delay: 0.4s;
+    }
+
+    .grid-item:nth-child(9) {
+      animation-delay: 0.45s;
+    }
+
+    .grid-item:nth-child(10) {
+      animation-delay: 0.5s;
+    }
+
+    .grid-item:nth-child(n + 11) {
+      animation-delay: 0.55s;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .header {
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .grid-item {
+        min-height: 90px;
+        padding: 15px 8px;
+      }
+
+      .icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .grid-item span {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Modern App Launcher</h1>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" class="moon">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" class="sun" style="display: none">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="search-container">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="search-input" placeholder="Search apps..." aria-label="Search applications" />
+    </div>
+
+    <div class="categories">
+      <button class="category-btn active" data-category="all">
+        All Apps
+      </button>
+      <button class="category-btn" data-category="ai">AI Tools</button>
+      <button class="category-btn" data-category="productivity">
+        Productivity
+      </button>
+      <button class="category-btn" data-category="social">
+        Social Media
+      </button>
+      <button class="category-btn" data-category="entertainment">
+        Entertainment
+      </button>
+      <button class="category-btn" data-category="dev">Development</button>
+    </div>
+
+    <div class="grid-container" id="grid" role="list">
+      <!-- AI Tools -->
+      <a href="https://gemini.google.com/" class="grid-item gemini" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Gemini AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Gemini logo" role="img">
+            <path d="M12 2l-1 7.5L7.5 12l3.5 2.5L12 22l1-7.5L16.5 12 13 9.5z" fill="white" stroke="white"
+              stroke-width="0.5" />
+          </svg>
+        </div>
+        <span>Gemini</span>
+        <div class="tooltip">Google's AI assistant</div>
+      </a>
+
+      <a href="https://chat.openai.com/" class="grid-item chatgpt" data-category="ai" role="listitem" tabindex="0"
+        aria-label="ChatGPT">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M22.28 9.82a5.98 5.98 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9 
+                6.07 6.07 0 0 0-10.3 2.16 5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 
+                5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.52 2.9A5.98 5.98 0 0 0 13.26 24a
+                6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.75-7.07zM13.26 
+                22.43a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.79.79 0 0 0 .4-.68v-6.74l2.02 
+                1.17a.07.07 0 0 1 .04.05v5.58a4.5 4.5 0 0 1-4.5 4.5zM3.6 18.3a4.47 4.47 0 0 
+                1-.53-3l.14.08 4.78 2.76a.77.77 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.74 
+                20a4.5 4.5 0 0 1-6.14-1.7zm-1.26-10.4a4.48 4.48 0 0 1 2.37-1.97V11.6a.77.77 0 0 0 
+                .39.68l5.81 3.35-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79A4.5 4.5 0 0 1 2.34 
+                7.87zm16.6 3.86l-5.83-3.39 2.01-1.16a.08.08 0 0 1 .07 0l4.83 2.8a4.5 4.5 0 0 
+                1-.68 8.1v-5.68a.79.79 0 0 0-.4-.67zm2-3.03l-.14-.08-4.77-2.78a.78.78 0 0 
+                0-.79 0L9.41 9.23V6.9a.07.07 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 
+                4.66zM8.31 12.86l-2.02-1.16a.08.08 0 0 1-.04-.06V6.07a4.5 4.5 0 0 1 
+                7.38-3.45l-.14.08L8.7 5.46a.79.79 0 0 0-.39.68zm1.1-2.36L12 9l2.6 1.5v3l-2.6 
+                1.5-2.6-1.5z" />
+          </svg>
+        </div>
+        <span>ChatGPT</span>
+        <div class="tooltip">OpenAI's conversational AI</div>
+      </a>
+
+      <a href="https://www.perplexity.ai/" class="grid-item perplexity" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Perplexity AI" data-size="tall">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 400 400">
+            <path fill="white" d="M192 84c0 24.2-.4 41-.9 41s-20.7-18.2-44.8-40.4l-43.8-40.3-.3 46.3-.2 46.4H65v135h37l.2 42 .3 
+                41.9 44.2-38.9c24.3-21.5 44.5-39 44.8-39s.5 17.8.5 39.5V357h16v-40c0-22 .2-40 .5-40s9.6 8 20.7 17.9c11.2 
+                9.8 31.1 27.3 44.3 38.9l24 21.1.3-41.5.2-41.4h37V137h-37l-.2-46.4-.3-46.4L253 85.1l-44.5 41-.3-41.5L208 
+                43h-16zm-42 26c15.1 13.9 27.6 25.6 27.8 26.1s-13.3 1-30 1.1l-30.3.3.3-28.4.3-28.4 2.2 2c1.2 1.1 14.6 13.4 
+                29.7 27.3m132-1v28h-30.1c-18.4 0-29.9-.4-29.7-.9.3-1 58.8-55.1 59.5-55.1.2 0 .3 12.6.3 28m-104 44.7c0 
+                .5-17.1 16.3-38 35.3l-38 34.5V256H81V153h48.5c26.7 0 48.5.3 48.5.7m141 50.8V256h-21v-16.8l-.1-16.7-37-33.5c-20.4-18.4-37.5-34-38.1-34.7-.8-1.1 
+                8.5-1.3 47.6-1.3H319zm-127 5.8v45.3l-36.2 31.9c-19.9 17.6-36.6 32.1-37 32.3s-.8-19.8-.7-44.5v-44.8l36.2-32.7c19.9-18.1 
+                36.5-32.8 37-32.8.4 0 .7 20.4.7 45.3m54-12.3 35.9 32.5.1 44.3c0 24.4-.4 44.2-.8 44s-17.1-14.6-37-32.2L208 
+                254.7v-44.9c0-31.6.3-44.9 1.1-44.6.6.2 17.2 15 36.9 32.8" />
+          </svg>
+        </div>
+        <span>Perplexity</span>
+        <div class="tooltip">AI-powered search engine</div>
+      </a>
+
+      <a href="https://manus.ai/" class="grid-item manus" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Manus AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <span>Manus</span>
+        <div class="tooltip">AI assistant for complex tasks</div>
+      </a>
+
+      <a href="https://openai.com/" class="grid-item openai" data-category="ai" role="listitem" tabindex="0"
+        aria-label="OpenAI">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.3 9.8a6 6 0 0 0-.5-4.9 
+                  6 6 0 0 0-6.5-2.9 
+                  6.1 6.1 0 0 0-10.3 2.2 
+                  6 6 0 0 0-4 2.9 
+                  6 6 0 0 0 .7 7.1 
+                  6 6 0 0 0 .5 4.9 
+                  6.1 6.1 0 0 0 6.5 2.9 
+                  6 6 0 0 0 4.3 2.1 
+                  6.1 6.1 0 0 0 5.8-4.2 
+                  6 6 0 0 0 4-2.9 
+                  6.1 6.1 0 0 0-.8-7.1z" fill="white" />
+          </svg>
+        </div>
+        <span>OpenAI</span>
+        <div class="tooltip">AI research laboratory</div>
+      </a>
+
+      <a href="https://krea.ai/" class="grid-item krea" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Krea AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v8m0 4v8M4.93 10H2a10 10 0 0 0 9 9.94M22 10h-2.93a8 8 0 0 1-7.07-4.13v0a8 8 0 0 1-4.13 7.07">
+            </path>
+          </svg>
+        </div>
+        <span>Krea</span>
+        <div class="tooltip">AI image generation</div>
+      </a>
+
+      <a href="https://huggingface.co/" class="grid-item huggingface" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Hugging Face">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"></path>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <path d="M9 9h.01"></path>
+            <path d="M15 9h.01"></path>
+          </svg>
+        </div>
+        <span>Hugging Face</span>
+        <div class="tooltip">AI model repository</div>
+      </a>
+
+      <a href="https://leonardo.ai/" class="grid-item leonardo" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Leonardo AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M2 12h20M2 12a10 10 0 0 1 20 0M2 12a10 10 0 0 0 20 0M12 2v20M12 2a10 10 0 0 1 0 20M12 2a10 10 0 0 0 0 20">
+            </path>
+          </svg>
+        </div>
+        <span>Leonardo</span>
+        <div class="tooltip">AI image generation platform</div>
+      </a>
+
+      <!-- New AI Tools -->
+      <a href="https://chat.deepseek.com/" class="grid-item deepseek" data-category="ai" role="listitem" tabindex="0"
+        aria-label="DeepSeek">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+        </div>
+        <span>DeepSeek</span>
+        <div class="tooltip">Advanced AI chat assistant</div>
+      </a>
+
+      <a href="https://chat.qwenlm.ai/?gad_source=1&gclid=CjwKCAiAtYy9BhBcEiwANWQQL4-hTubGjkL8AYvK2l7y1SddJ2CRF-bp7BpPaYCJb1hkV95A0paKLxoCI2cQAvD_BwE"
+        class="grid-item qwen" data-category="ai" role="listitem" tabindex="0" aria-label="Qwen">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <span>Qwen</span>
+        <div class="tooltip">Conversational AI assistant</div>
+      </a>
+
+      <a href="https://www.suno.ai/" class="grid-item suno" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Suno AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </div>
+        <span>Suno</span>
+        <div class="tooltip">AI music generation</div>
+      </a>
+
+      <a href="https://www.araby.ai/" class="grid-item araby" data-category="ai" role="listitem" tabindex="0"
+        aria-label="Araby AI">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <span>Araby AI</span>
+        <div class="tooltip">Arabic language AI assistant</div>
+      </a>
+
+      <!-- Productivity -->
+      <a href="https://www.notion.so/" class="grid-item notion" data-category="productivity" role="listitem"
+        tabindex="0" aria-label="Notion">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 6h12v12H6z"></path>
+          </svg>
+        </div>
+        <span>Notion</span>
+        <div class="tooltip">All-in-one workspace</div>
+      </a>
+
+      <a href="https://www.canva.com/" class="grid-item canva" data-category="productivity" role="listitem" tabindex="0"
+        aria-label="Canva">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18M3 12h18M5.64 5.64l12.72 12.72M18.36 5.64L5.64 18.36"></path>
+          </svg>
+        </div>
+        <span>Canva</span>
+        <div class="tooltip">Graphic design platform</div>
+      </a>
+
+      <a href="https://www.google.com/" class="grid-item google" data-category="productivity" role="listitem"
+        tabindex="0" aria-label="Google">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+        </div>
+        <span>Google</span>
+        <div class="tooltip">Search engine & productivity suite</div>
+      </a>
+
+      <a href="https://www.microsoft.com/" class="grid-item microsoft" data-category="productivity" role="listitem"
+        tabindex="0" aria-label="Microsoft">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <rect x="2" y="2" width="9" height="9" fill="#F25022" />
+            <rect x="13" y="2" width="9" height="9" fill="#7FBA00" />
+            <rect x="2" y="13" width="9" height="9" fill="#00A4EF" />
+            <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
+          </svg>
+        </div>
+        <span>Microsoft</span>
+        <div class="tooltip">Software & cloud services</div>
+      </a>
+
+      <!-- New Productivity Tools -->
+      <a href="https://datasetsearch.research.google.com/" class="grid-item dataset-search" data-category="productivity"
+        role="listitem" tabindex="0" aria-label="Dataset Search">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+        </div>
+        <span>Dataset Search</span>
+        <div class="tooltip">Google's dataset search engine</div>
+      </a>
+
+      <a href="https://tashkeel.alsharekh.org/" class="grid-item tashkeel" data-category="productivity" role="listitem"
+        tabindex="0" aria-label="Tashkeel">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+        <span>Tashkeel</span>
+        <div class="tooltip">Arabic text diacritization tool</div>
+      </a>
+
+      <!-- Development -->
+      <a href="https://github.com/" class="grid-item github" data-category="dev" role="listitem" tabindex="0"
+        aria-label="GitHub" data-size="tall">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 
+                3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 
+                5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 
+                5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+            </path>
+          </svg>
+        </div>
+        <span>GitHub</span>
+        <div class="tooltip">Code hosting platform</div>
+      </a>
+
+      <a href="https://gitmcp.io/" class="grid-item gitmcp" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Gitmcp">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 
+                3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 
+                5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 
+                5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+            </path>
+          </svg>
+        </div>
+        <span>Gitmcp</span>
+        <div class="tooltip">Code hosting platform</div>
+      </a>
+
+      <a href="https://www.pinecone.io/" class="grid-item pinecone" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Pinecone">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <span>Pinecone</span>
+        <div class="tooltip">Vector database for AI</div>
+      </a>
+
+      <!-- New Development Tools -->
+      <a href="https://bolt.new/" class="grid-item bolt-new" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Bolt">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+          </svg>
+        </div>
+        <span>Bolt</span>
+        <div class="tooltip">Fast web development environment</div>
+      </a>
+
+      <a href="https://lovable.dev/" class="grid-item lovable" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Lovable">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 
+                0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </div>
+        <span>Lovable</span>
+        <div class="tooltip">Developer-friendly tools</div>
+      </a>
+
+      <a href="https://react.dev/" class="grid-item react" data-category="dev" role="listitem" tabindex="0"
+        aria-label="React">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="2.5"></circle>
+            <path d="M12 2.21c5.05 0 9.79 4.45 9.79 9.79s-4.74 
+                9.79-9.79 9.79-9.79-4.45-9.79-9.79S6.95 2.21 12 2.21"></path>
+            <path d="M12 2.21c-3.17 7.92-3.17 11.67 0 19.58"></path>
+            <path d="M12 2.21c3.17 7.92 3.17 11.67 0 19.58"></path>
+            <path d="M2.21 12c7.92-3.17 11.67-3.17 19.58 0"></path>
+            <path d="M2.21 12c7.92 3.17 11.67 3.17 19.58 0"></path>
+          </svg>
+        </div>
+        <span>React</span>
+        <div class="tooltip">JavaScript library for UI</div>
+      </a>
+
+      <a href="https://getbootstrap.com/" class="grid-item bootstrap" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Bootstrap">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+          </svg>
+        </div>
+        <span>Bootstrap</span>
+        <div class="tooltip">CSS framework</div>
+      </a>
+
+      <a href="https://dash.cloudflare.com/760850086dc67c811c044501c4adc2d7/workers-and-pages/create"
+        class="grid-item cloudflare" data-category="dev" role="listitem" tabindex="0" aria-label="Cloudflare">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12a10 10 0 1 1 20 0 10 10 0 0 1-20 0z"></path>
+            <path d="M12 2v20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <span>Cloudflare</span>
+        <div class="tooltip">Web infrastructure & security</div>
+      </a>
+
+      <a href="https://streamlit.io/" class="grid-item streamlit" data-category="dev" role="listitem" tabindex="0"
+        aria-label="Streamlit">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <line x1="12" y1="6" x2="16" y2="6"></line>
+            <line x1="12" y1="12" x2="16" y2="12"></line>
+            <line x1="12" y1="18" x2="16" y2="18"></line>
+          </svg>
+        </div>
+        <span>Streamlit</span>
+        <div class="tooltip">Python web app framework</div>
+      </a>
+
+      <!-- Social Media -->
+      <a href="https://twitter.com/" class="grid-item twitter" data-category="social" role="listitem" tabindex="0"
+        aria-label="Twitter">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 
+                10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+            </path>
+          </svg>
+        </div>
+        <span>Twitter</span>
+        <div class="tooltip">Social networking service</div>
+      </a>
+
+      <a href="https://www.instagram.com/" class="grid-item instagram" data-category="social" role="listitem"
+        tabindex="0" aria-label="Instagram">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </div>
+        <span>Instagram</span>
+        <div class="tooltip">Photo & video sharing</div>
+      </a>
+
+      <a href="https://www.linkedin.com/" class="grid-item linkedin" data-category="social" role="listitem" tabindex="0"
+        aria-label="LinkedIn">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+            <rect x="2" y="9" width="4" height="12"></rect>
+            <circle cx="4" cy="4" r="2"></circle>
+          </svg>
+        </div>
+        <span>LinkedIn</span>
+        <div class="tooltip">Professional networking</div>
+      </a>
+
+      <a href="https://discord.com/" class="grid-item discord" data-category="social" role="listitem" tabindex="0"
+        aria-label="Discord">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 18l-3-2h-3.5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1H21v10z"></path>
+            <path d="M3 18l3-2h3.5a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H3v10z"></path>
+            <path d="M9.5 15h5"></path>
+          </svg>
+        </div>
+        <span>Discord</span>
+        <div class="tooltip">Communication platform</div>
+      </a>
+
+      <!-- Entertainment -->
+      <a href="https://www.netflix.com/" class="grid-item netflix" data-category="entertainment" role="listitem"
+        tabindex="0" aria-label="Netflix">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 3l14 9-14 9V3z"></path>
+          </svg>
+        </div>
+        <span>Netflix</span>
+        <div class="tooltip">Streaming service</div>
+      </a>
+
+      <a href="https://www.amazon.com/" class="grid-item amazon" data-category="entertainment" role="listitem"
+        tabindex="0" aria-label="Amazon">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+        </div>
+        <span>Amazon</span>
+        <div class="tooltip">Online shopping & streaming</div>
+      </a>
+
+      <a href="https://code2tutorial.com/" class="grid-item linkedin" data-category="dev" role="listitem" tabindex="0"
+        aria-label="code2tutorial">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384"></svg>
+          <path fill="white"
+            d="M216 17.4c0 .2.8 1 1.8 1.7 1.5 1.3 1.6 1.2.3-.4s-2.1-2.1-2.1-1.3m-26 25c0 .2.8 1 1.8 1.7 1.5 1.3 1.6 1.2.3-.4s-2.1-2.1-2.1-1.3m21.1 44.2c0 1.1.3 1.4.6.6.3-.7.2-1.6-.1-1.9-.3-.4-.6.2-.5 1.3m-14 1c0 1.1.3 1.4.6.6.3-.7.2-1.6-.1-1.9-.3-.4-.6.2-.5 1.3m-63.3 2.1c.7.3 1.6.2 1.9-.1.4-.3-.2-.6-1.3-.5-1.1 0-1.4.3-.6.6m113 1c.6.2 1.8.2 2.5 0 .6-.3.1-.5-1.3-.5s-1.9.2-1.2.5" />
+          <path fill="white"
+            d="M192 84c0 24.2-.4 41-.9 41s-20.7-18.2-44.8-40.4l-43.8-40.3-.3 46.3-.2 46.4H65v135h37l.2 42 .3 41.9 44.2-38.9c24.3-21.5 44.5-39 44.8-39s.5 17.8.5 39.5V357h16v-40c0-22 .2-40 .5-40s9.6 8 20.7 17.9c11.2 9.8 31.1 27.3 44.3 38.9l24 21.1.3-41.5.2-41.4h37V137h-37l-.2-46.4-.3-46.4L253 85.1l-44.5 41-.3-41.5L208 43h-16z" />
+          <path fill="white"
+            d="M165.5 91c15.1 13.9 27.6 25.6 27.8 26.1s-13.3 1-30 1.1l-30.3.3.3-28.4.3-28.4 2.2 2c1.2 1.1 14.6 13.4 29.7 27.3m132-1v28h-30.1c-18.4 0-29.9-.4-29.7-.9.3-1 58.8-55.1 59.5-55.1.2 0 .3 12.6.3 28m-104 44.7c0 .5-17.1 16.3-38 35.3l-38 34.5V256H81V153h48.5c26.7 0 48.5.3 48.5.7" />
+          <path fill="white"
+            d="M192 84c0 24.2-.4 41-.9 41s-20.7-18.2-44.8-40.4l-43.8-40.3-.3 46.3-.2 46.4H65v135h37l.2 42 .3 41.9 44.2-38.9c24.3-21.5 44.5-39 44.8-39s.5 17.8.5 39.5V357h16v-40c0-22 .2-40 .5-40s9.6 8 20.7 17.9c11.2 9.8 31.1 27.3 44.3 38.9l24 21.1.3-41.5.2-41.4h37V137h-37l-.2-46.4-.3-46.4L253 85.1l-44.5 41-.3-41.5L208 43h-16zm-42 26c15.1 13.9 27.6 25.6 27.8 26.1s-13.3 1-30 1.1l-30.3.3.3-28.4.3-28.4 2.2 2c1.2 1.1 14.6 13.4 29.7 27.3m132-1v28h-30.1c-18.4 0-29.9-.4-29.7-.9.3-1 58.8-55.1 59.5-55.1.2 0 .3 12.6.3 28m-104 44.7c0 .5-17.1 16.3-38 35.3l-38 34.5V256H81V153h48.5c26.7 0 48.5.3 48.5.7" />
+          </svg>
+        </div>
+        <span>code2tutorial</span>
+        <div class="tooltip">Code hosting platform</div>
+      </a>
+
+
+    </div>
+
+    <div class="no-results" id="no-results">
+      No apps found matching your search.
+    </div>
+
+    <footer>
+      <p>Modern App Launcher &copy; 2025 | Press '/' to focus search</p>
+    </footer>
+  </div>
+
+  <script>
+    // DOM Elements
+    const searchInput = document.getElementById("search-input");
+    const grid = document.getElementById("grid");
+    const noResults = document.getElementById("no-results");
+    const themeToggle = document.getElementById("theme-toggle");
+    const moonIcon = themeToggle.querySelector(".moon");
+    const sunIcon = themeToggle.querySelector(".sun");
+    const categoryButtons = document.querySelectorAll(".category-btn");
+
+    // Initialize
+    let currentCategory = "all";
+    let isDarkMode = true; // Default is dark mode
+    let draggedItem = null;
+    let placeholder = null;
+
+
+    // Theme toggle functionality
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("light-mode");
+      isDarkMode = !document.body.classList.contains("light-mode"); // More robust check
+      moonIcon.style.display = isDarkMode ? "block" : "none";
+      sunIcon.style.display = isDarkMode ? "none" : "block";
+      localStorage.setItem("darkMode", isDarkMode);
+    });
+
+    // Load saved preferences on DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedDarkMode = localStorage.getItem("darkMode");
+      if (savedDarkMode !== null) {
+        isDarkMode = savedDarkMode === "true"; 
+        if (!isDarkMode) {
+          document.body.classList.add("light-mode");
+        }
+      }
+      moonIcon.style.display = isDarkMode ? "block" : "none";
+      sunIcon.style.display = isDarkMode ? "none" : "block";
+      
+      loadAppOrder(); // Load and apply saved app order
+      initializeDragAndDrop(); // Set up drag and drop listeners
+      initialize3DTilt(); // Initialize 3D tilt effect for items
+    });
+
+    function createPlaceholderElement() {
+        const p = document.createElement('div');
+        p.className = 'drag-placeholder';
+        if (draggedItem) {
+            p.style.height = `${draggedItem.offsetHeight}px`;
+            // If items have specific data-size attributes for height (e.g. masonry)
+            if (draggedItem.dataset.size === "tall") { 
+                 p.style.minHeight = "250px"; 
+            } else {
+                 p.style.minHeight = "100px"; 
+            }
+        } else {
+            p.style.height = '100px'; // Default placeholder height
+        }
+        return p;
+    }
+
+    function initializeDragAndDrop() {
+      const currentGridItems = Array.from(grid.querySelectorAll('.grid-item'));
+      currentGridItems.forEach(item => {
+        item.setAttribute('draggable', 'true');
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+      });
+
+      grid.addEventListener('dragover', handleDragOverGrid);
+      grid.addEventListener('dragenter', (e) => {
+        e.preventDefault(); // Necessary for dragover to fire consistently on container
+      }); 
+      grid.addEventListener('drop', handleDropGrid);
+    }
+
+    function handleDragStart(e) {
+      draggedItem = this;
+      // Use a minimal timeout to allow the browser to capture the drag image
+      // before applying the 'dragging' class which might alter its appearance.
+      setTimeout(() => { 
+        if(draggedItem) draggedItem.classList.add('dragging');
+      }, 0);
+      
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.getAttribute('href')); // Unique ID for item
+
+      placeholder = createPlaceholderElement();
+      // Placeholder is inserted into DOM during dragover
+    }
+
+    function handleDragEnd(e) {
+      if (draggedItem) { // Check if draggedItem is still set
+          draggedItem.classList.remove('dragging');
+      }
+      if (placeholder && placeholder.parentNode) {
+        placeholder.parentNode.removeChild(placeholder);
+      }
+      draggedItem = null;
+      placeholder = null;
+    }
+    
+    // Determines which element the dragged item should be placed before.
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.grid-item:not(.dragging):not(.drag-placeholder)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            // y is mouse position, box.top is element's top, box.height is element's height
+            // offset is distance from mouse to center of child element
+            const offset = y - box.top - box.height / 2;
+            // We are looking for the element whose center is just below the mouse pointer (negative offset)
+            // and is closer than any previous element found (larger negative offset, i.e. closer to 0)
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function handleDragOverGrid(e) {
+        e.preventDefault(); 
+        if (!draggedItem || !placeholder) return;
+
+        const afterElement = getDragAfterElement(grid, e.clientY);
+        
+        // Only move the placeholder if its target position actually changes
+        let currentTargetElement = placeholder.nextSibling; 
+        if (placeholder.parentNode !== grid || currentTargetElement !== afterElement) {
+            if (afterElement == null) { // If no element to place before, append to end
+                grid.appendChild(placeholder);
+            } else {
+                grid.insertBefore(placeholder, afterElement);
+            }
+        }
+    }
+
+    function handleDropGrid(e) {
+      e.preventDefault();
+      if (!draggedItem || !placeholder || !placeholder.parentNode) {
+        // Cleanup if state is not as expected
+        if (draggedItem) draggedItem.classList.remove('dragging');
+        if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+        draggedItem = null;
+        placeholder = null;
+        return;
+      }
+
+      // Insert the dragged item before the placeholder's final position
+      placeholder.parentNode.insertBefore(draggedItem, placeholder);
+      // dragend will handle removing .dragging class and the placeholder itself
+      saveAppOrder();
+    }
+
+    function saveAppOrder() {
+      const orderedAppHrefs = [];
+      grid.querySelectorAll('.grid-item').forEach(item => {
+        // Ensure we don't try to get href from the placeholder if it's somehow still there
+        if (item !== placeholder && item.hasAttribute('href')) { 
+            orderedAppHrefs.push(item.getAttribute('href'));
+        }
+      });
+      localStorage.setItem('appLauncherOrder_v3_grid_final_5', JSON.stringify(orderedAppHrefs));
+    }
+
+    function loadAppOrder() {
+      const savedOrder = JSON.parse(localStorage.getItem('appLauncherOrder_v3_grid_final_5'));
+      if (savedOrder && Array.isArray(savedOrder) && savedOrder.length > 0) {
+        const itemsMap = new Map();
+        // Store all current items from DOM into a map by their href
+        const currentItemsInDOM = Array.from(grid.querySelectorAll('.grid-item'));
+        currentItemsInDOM.forEach(item => {
+          if (item.hasAttribute('href')) {
+            itemsMap.set(item.getAttribute('href'), item);
+          }
+        });
+
+        const fragment = document.createDocumentFragment();
+        let successfullyReordered = false;
+
+        // Append items from savedOrder first, in their saved sequence
+        savedOrder.forEach(href => {
+          const item = itemsMap.get(href);
+          if (item) {
+            fragment.appendChild(item);
+            itemsMap.delete(href); // Item accounted for
+            successfullyReordered = true;
+          }
+        });
+        
+        // Append any remaining items from the map (these are new items not in savedOrder)
+        itemsMap.forEach(item => fragment.appendChild(item));
+
+        // Only rewrite the DOM if the order actually changed or new items were added
+        if (successfullyReordered || itemsMap.size > 0) { 
+            grid.innerHTML = ''; // Clear existing items from grid
+            grid.appendChild(fragment); // Append all items in new/combined order
+        }
+      }
+    }
+
+    /*
+    // Optional: JS-based Parallax for smoother effect or more control
+    function initParallax() {
+      const parallaxBg = document.querySelector('body::before'); // This selector won't work for pseudo-elements
+                                                              // We'd need to apply to a real element or change approach
+      if (!parallaxBg) return;
+
+      window.addEventListener('scroll', () => {
+        const scrollY = window.pageYOffset;
+        // Adjust this formula as needed
+        // For a true fixed background, CSS `background-attachment: fixed` is better.
+        // This JS would be for custom scroll speed effects.
+        // parallaxBg.style.transform = `translateY(${scrollY * 0.5}px)`; 
+      });
+    }
+    */
+
+    // Search functionality
+    searchInput.addEventListener("input", filterApps);
+
+    function filterApps() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const items = grid.querySelectorAll(".grid-item");
+      let visibleCount = 0;
+
+      items.forEach((item) => {
+        const appName = item.querySelector("span").textContent.toLowerCase();
+        const tooltip =
+          item.querySelector(".tooltip")?.textContent.toLowerCase() || "";
+        const itemCategory = item.dataset.category;
+
+        // Check if item matches search term and category filter
+        const matchesSearch =
+          appName.includes(searchTerm) || tooltip.includes(searchTerm);
+        const matchesCategory =
+          currentCategory === "all" || itemCategory === currentCategory;
+
+        if (matchesSearch && matchesCategory) {
+          item.style.display = "flex";
+          visibleCount++;
+        } else {
+          item.style.display = "none";
+        }
+      });
+
+      // Show/hide no results message
+      noResults.style.display = visibleCount === 0 ? "block" : "none";
+    }
+
+    // Category filtering
+    categoryButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        // Update active button
+        categoryButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        // Update current category and filter
+        currentCategory = button.dataset.category;
+        filterApps();
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      // Focus search when pressing '/'
+      if (e.key === "/" && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+
+      // Navigate with arrow keys when grid items are focused
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+      ) {
+        const focusedElement = document.activeElement;
+        if (
+          focusedElement &&
+          focusedElement.classList.contains("grid-item")
+        ) {
+          e.preventDefault();
+
+          const visibleItems = Array.from(
+            grid.querySelectorAll(".grid-item:not([style*='display: none'])") // Consider only visible items
+          );
+
+          if (visibleItems.length === 0) return;
+
+          const currentIndex = visibleItems.indexOf(focusedElement);
+          if (currentIndex === -1) return;
+
+          const gridStyle = window.getComputedStyle(grid);
+          const gridTemplateColumns = gridStyle.getPropertyValue("grid-template-columns");
+          const columnsCount = gridTemplateColumns.split(" ").length;
+
+          let nextIndex;
+
+          switch (e.key) {
+            case "ArrowUp":
+              nextIndex = currentIndex - columnsCount;
+              break;
+            case "ArrowDown":
+              nextIndex = currentIndex + columnsCount;
+              break;
+            case "ArrowLeft":
+              nextIndex = currentIndex - 1;
+              break;
+            case "ArrowRight":
+              nextIndex = currentIndex + 1;
+              break;
+          }
+
+          if (nextIndex >= 0 && nextIndex < visibleItems.length) {
+            // Ensure smooth transition if items are being added/removed by search
+             if ( (e.key === "ArrowLeft" && currentIndex % columnsCount === 0) || 
+                  (e.key === "ArrowRight" && (currentIndex + 1) % columnsCount === 0 && nextIndex >= visibleItems.length) ) {
+                // Don't move if at edge and next item would wrap illogically or is out of bounds
+             } else {
+                visibleItems[nextIndex].focus();
+             }
+          }
+        }
+      }
+    });
+
+    // Accessibility: Make Enter key work like click for grid items
+    grid.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target.classList.contains("grid-item")) {
+        e.preventDefault();
+        e.target.click(); // Or e.target.querySelector('a').click() if it's a link
+      }
+    });
+
+    // Optional: More interactive 3D tilt for grid items
+    function initialize3DTilt() {
+        const currentGridItems = document.querySelectorAll('.grid-item');
+        currentGridItems.forEach(item => {
+            // Avoid re-attaching listeners if already initialized
+            if (item.dataset.tiltInitialized === 'true') return; 
+
+            item.addEventListener('mousemove', handleItemMouseMove);
+            item.addEventListener('mouseleave', handleItemMouseLeave);
+            item.addEventListener('focus', handleItemFocus);
+            item.addEventListener('blur', handleItemBlur);
+            item.dataset.tiltInitialized = 'true';
+        });
+    }
+    
+    function handleItemMouseMove(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotateX = (y / rect.height) * -10;
+        const rotateY = (x / rect.width) * 10;
+        // Ensure not to interfere with .dragging style
+        if (!this.classList.contains('dragging')) {
+            this.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        }
+    }
+
+    function handleItemMouseLeave() {
+        // Ensure not to interfere with .dragging style or if focused
+        if (!this.classList.contains('dragging') && !this.matches(':focus')) { 
+            this.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+        }
+    }
+
+    function handleItemFocus() {
+        // Ensure not to interfere with .dragging style
+        if (!this.classList.contains('dragging')) {
+            this.style.transform = 'perspective(1000px) rotateX(5deg) rotateY(2deg) scale(1.05)';
+        }
+    }
+
+    function handleItemBlur() {
+        // Reset only if not hovered and not dragging
+        if (!this.matches(':hover') && !this.classList.contains('dragging')) { 
+             this.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+        }
+    }
+    // Note: initialize3DTilt() is called in DOMContentLoaded after loadAppOrder()
+    // and initializeDragAndDrop() ensure the DOM is ready and items are in their loaded order.
+
+  </script>
+</body>
+
+</html>
