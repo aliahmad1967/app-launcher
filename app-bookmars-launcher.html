@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Dashboard</title>
+    
+    <!-- Google Fonts for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Professional Dark Palette */
+            --bg-color: #050505;
+            --bg-gradient: radial-gradient(circle at 50% 0%, #1a1d2d 0%, #050505 60%);
+            
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-hover-bg: rgba(255, 255, 255, 0.07);
+            --card-hover-border: rgba(120, 119, 198, 0.5); /* Subtle Indigo */
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            
+            --accent-glow: 0 0 20px rgba(124, 58, 237, 0.15);
+            --input-bg: rgba(20, 20, 20, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- Header Section --- */
+        header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- Search Bar --- */
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 18px 50px 18px 25px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            background-color: var(--input-bg);
+            color: white;
+            outline: none;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: right;
+        }
+
+        input[type="text"]:focus {
+            background-color: rgba(30, 30, 30, 0.9);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Search Icon */
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        /* --- Grid Layout --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            padding-bottom: 60px;
+            perspective: 1000px;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-decoration: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            height: 125px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            
+            /* Glass Effect */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            
+            /* Animations */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            animation: fadeIn 0.5s ease-out backwards;
+        }
+
+        /* Staggered animation delay handled by JS or simple CSS */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card:hover {
+            transform: translateY(-6px) scale(1.02);
+            background: var(--card-hover-bg);
+            border-color: var(--card-hover-border);
+            box-shadow: var(--accent-glow), 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        .card:hover .icon-box {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .icon-box svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.9);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+
+        .card:hover .card-title {
+            color: #fff;
+        }
+
+        .fallback {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-top: 50px;
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+            .card { height: 110px; padding: 15px 8px; }
+            .icon-box { width: 40px; height: 40px; margin-bottom: 10px; }
+            .card-title { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="search-wrapper">
+            <!-- Search Icon SVG -->
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="search" placeholder="ابحث في التطبيقات..." autofocus autocomplete="off">
+        </div>
+    </header>
+
+    <div id="grid" class="grid"></div>
+
+    <script>
+        /* 
+           === 1. DATABASE ===
+           Maps app names to direct URLs.
+        */
+        const manualDatabase = {
+            "Data Viz Project": "https://datavizproject.com",
+            "Online ICO converter": "https://www.icoconverter.com",
+            "ERDPlus": "https://erdplus.com",
+            "Playground AI": "https://playgroundai.com",
+            "ExcelDataPro": "https://www.exceldatapro.com",
+            "Perplexity AI": "https://www.perplexity.ai",
+            "Mockaroo": "https://www.mockaroo.com",
+            "Streamlit": "https://streamlit.io",
+            "Quadratic": "https://quadratichq.com",
+            "Canva": "https://www.canva.com",
+            "شكللي": "https://tashkeel.alsharekh.org",
+            "pinokio": "https://pinokio.computer",
+            "Invideo AI": "https://ai.invideo.io",
+            "Socpanel": "https://socpanel.com",
+            "وقت الافلام": "https://watanflix.com",
+            "Claude": "https://claude.ai",
+            "Powerdrill": "https://powerdrill.ai",
+            "Pixabay": "https://pixabay.com",
+            "Replit": "https://replit.com",
+            "Tracksy": "https://tracksy.ai",
+            "Augie": "https://augie.studio",
+            "Adobe Acrobat": "https://www.adobe.com/acrobat/online.html",
+            "Rapid API": "https://rapidapi.com",
+            "OpenAI Playground": "https://platform.openai.com/playground",
+            "Blogger": "https://www.blogger.com",
+            "مشرفي المواقع": "https://search.google.com/search-console",
+            "FxNewsToday": "https://www.fxnewstoday.ae",
+            "Investing.com": "https://sa.investing.com",
+            "TemplateMo": "https://templatemo.com",
+            "Yumpu": "https://www.yumpu.com",
+            "Gemini API": "https://ai.google.dev",
+            "Artguru": "https://www.artguru.ai",
+            "Barjeel Art": "https://www.barjeelartfoundation.org",
+            "Zapier": "https://zapier.com",
+            "Arabic Text Photoshop": "https://arabic-text.com",
+            "Photopea": "https://www.photopea.com",
+            "PDF to Chat": "https://pdftochat.com",
+            "CodePen": "https://codepen.io",
+            "PICRYL": "https://picryl.com",
+            "Arabic AI": "https://araby.ai",
+            "FlowGPT": "https://flowgpt.com",
+            "Adobe Firefly": "https://firefly.adobe.com",
+            "Pexels": "https://www.pexels.com",
+            "BookAI": "https://www.bookai.chat",
+            "Kaiber": "https://kaiber.ai",
+            "Z-Library": "https://z-lib.io",
+            "YouWrite": "https://you.com",
+            "PNGWing": "https://www.pngwing.com",
+            "Gamma": "https://gamma.app",
+            "Stylar": "https://www.stylar.ai",
+            "Matecat": "https://www.matecat.com",
+            "Suno AI": "https://suno.com",
+            "Spline": "https://spline.design",
+            "Unsplash": "https://unsplash.com",
+            "Ideogram": "https://ideogram.ai",
+            "Huemint": "https://huemint.com",
+            "FlexClip": "https://www.flexclip.com",
+            "Voiceflow": "https://www.voiceflow.com",
+            "Tailwind CSS": "https://tailwindcss.com",
+            "Viva.ai": "https://viva.ai",
+            "Make": "https://www.make.com",
+            "Relume": "https://www.relume.io",
+            "Civitai": "https://civitai.com",
+            "GravityWrite": "https://gravitywrite.com",
+            "Udio": "https://www.udio.com",
+            "Glasp": "https://glasp.co",
+            "مهمل": "https://www.mohmal.com",
+            "KREA": "https://www.krea.ai",
+            "Edclub": "https://www.edclub.com",
+            "Searcholic": "https://searcholic.com",
+            "Chatbase": "https://www.chatbase.co",
+            "KLING AI": "https://klingai.com",
+            "Flask Docs": "https://flask.palletsprojects.com",
+            "PixVerse": "https://pixverse.ai",
+            "WebOas.is": "https://weboas.is",
+            "Pinecone": "https://www.pinecone.io",
+            "LottieFiles": "https://lottiefiles.com",
+            "Bio Link": "https://bio.link",
+            "Flet": "https://flet.dev",
+            "Cursor": "https://cursor.sh",
+            "GigaBrain": "https://thegigabrain.com",
+            "Printify": "https://printify.com",
+            "Font Awesome": "https://fontawesome.com",
+            "AppSheet": "https://about.appsheet.com/home",
+            "Glif": "https://glif.app",
+            "Hugging Face": "https://huggingface.co",
+            "SaveFrom": "https://en.savefrom.net",
+            "Apify": "https://apify.com",
+            "You.com": "https://you.com",
+            "CGDream": "https://cgdream.ai",
+            "ChatGPT": "https://chat.openai.com",
+            "Epieos": "https://epieos.com",
+            "Have I Been Pwned": "https://haveibeenpwned.com",
+            "Felo": "https://felo.ai",
+            "KDP Calculator": "https://kdp.amazon.com/cover-calculator",
+            "Freepik": "https://www.freepik.com",
+            "Monkeytype": "https://monkeytype.com",
+            "Aixploria": "https://www.aixploria.com",
+            "O-DAN": "https://o-dan.net",
+            "Bolt.new": "https://bolt.new",
+            "BlackBox": "https://www.blackbox.ai",
+            "Packt": "https://www.packtpub.com",
+            "Data.gov": "https://data.gov",
+            "NotebookLM": "https://notebooklm.google.com",
+            "Snapclear": "https://www.snapclear.app",
+            "DeepSeek": "https://deepseek.com",
+            "Lovable": "https://lovable.dev",
+            "React": "https://react.dev",
+            "Dribbble": "https://dribbble.com",
+            "Secret Llama": "https://secretllama.com",
+            "Dreamina": "https://dreamina.top",
+            "Hailuo AI": "https://hailuo.ai",
+            "TensorArt": "https://tensor.art",
+            "Bootstrap": "https://getbootstrap.com",
+            "CopyCoder": "https://copycoder.ai",
+            "Appwrite": "https://appwrite.io",
+            "Cloudflare": "https://www.cloudflare.com",
+            "Qwen": "https://chat.qwen.ai",
+            "موبيزي": "https://mobeasy.com",
+            "Weights": "https://www.weights.gg",
+            "Median": "https://median.co",
+            "Mistral AI": "https://mistral.ai",
+            "OpenRouter": "https://openrouter.ai",
+            "Glide": "https://www.glideapps.com",
+            "CodeDesign": "https://codedesign.ai",
+            "Brandfetch": "https://brandfetch.com",
+            "Tempo Labs": "https://www.tempolabs.ai",
+            "Semantic Scholar": "https://www.semanticscholar.org",
+            "OldMapsOnline": "https://www.oldmapsonline.org",
+            "VectorShift": "https://vectorshift.ai",
+            "Figma": "https://www.figma.com",
+            "Rollout": "https://rollout.io",
+            "Manus": "https://manus.ai",
+            "Groq": "https://groq.com",
+            "Grammarly": "https://www.grammarly.com",
+            "HTML5 UP": "https://html5up.net",
+            "Genspark": "https://genspark.ai",
+            "Napkin AI": "https://napkin.ai",
+            "Yourware": "https://yourware.com",
+            "TypingClub": "https://www.typingclub.com",
+            "PDFgear": "https://www.pdfgear.com",
+            "Sejda": "https://www.sejda.com",
+            "PDFescape": "https://www.pdfescape.com",
+            "10Web": "https://10web.io",
+            "VODU": "https://vodu.me",
+            "Chai": "https://chai.ml",
+            "Jotform": "https://www.jotform.com",
+            "CleanPNG": "https://www.cleanpng.com",
+            "Stirling PDF": "https://stirlingpdf.io",
+            "Trae": "https://trae.ai",
+            "Vite": "https://vitejs.dev",
+            "Databutton": "https://databutton.com",
+            "MiniMax": "https://minimax.io",
+            "Julius AI": "https://julius.ai",
+            "Smithery": "https://smithery.ai",
+            "Lovart": "https://lovart.ai",
+            "CodeGeeX": "https://codegeex.cn",
+            "n8n": "https://n8n.io",
+            "Mocha": "https://mochajs.org",
+            "Formester": "https://formester.com",
+            "v0": "https://v0.dev",
+            "Opal": "https://opal.dev",
+            "Leap": "https://leap.ai",
+            "InfinityFree": "https://infinityfree.net",
+            "Barnes & Noble": "https://www.barnesandnoble.com",
+            "WeWeb": "https://weweb.io",
+            "EdrawMax": "https://www.edrawsoft.com",
+            "Jules": "https://jules.ai",
+            "Gandalf": "https://gandalf.lakera.ai",
+            "Skywork": "https://skywork.ai",
+            "MindStudio": "https://mindstudio.ai",
+            "Static.run": "https://static.run",
+            "Base44": "https://base44.com",
+            "GitHub": "https://github.com",
+            "LongCat AI": "https://longcat.ai",
+            "Evernote": "https://evernote.com",
+            "Clerk": "https://clerk.com",
+            "Supabase": "https://supabase.com",
+            "Firecrawl": "https://firecrawl.dev",
+            "Sheet0": "https://sheet0.com",
+            "VS Code": "https://code.visualstudio.com",
+            "Lumi": "https://lumi.ai",
+            "Natively": "https://natively.io",
+            "Qdrant": "https://qdrant.tech",
+            "Open Library": "https://openlibrary.org",
+            "Power BI": "https://powerbi.microsoft.com",
+            "Notion": "https://www.notion.so",
+            "Netlify": "https://www.netlify.com",
+            "Magic Hour": "https://magichour.ai",
+            "UPDF": "https://updf.com",
+            "Chutes": "https://chutes.ai",
+            "Anima": "https://animaapp.com",
+            "ImageKit": "https://imagekit.io",
+            "Databricks": "https://www.databricks.com",
+            "Docker": "https://www.docker.com",
+            "Kimi": "https://kimi.ai",
+            "Ollama": "https://ollama.com",
+            "Vercel": "https://vercel.com",
+            "Komposo": "https://komposo.ai",
+            "BrowserAct": "https://browseract.com",
+            "Stitch": "https://stitch.ai"
+        };
+
+        // Custom High Quality SVGs
+        const svgIcons = {
+            'vercel.com': '<svg width="100%" height="100%" viewBox="0 0 76 65" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="#ffffff"/></svg>',
+            'github.com': '<svg viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/></svg>',
+            'youtube.com': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/><path fill="#FFF" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+            'openai.com': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944z"/></svg>',
+            'claude.ai': '<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path fill="#d97757" d="M27.03 13.9C36.7 5.7 48.96 1 61.57.5c12.2.1 23.36 4.3 32.22 11.23 8.35 6.6 14.53 15.65 17.22 25.88 2.37 9.1 1.9 18.84-.7 27.87-2.67 9.2-7.85 17.6-14.7 24.32-6.53 6.3-14.6 10.8-23.35 12.8-8.8 2-18.06 1.4-26.65-1.15-8.3-2.5-15.8-6.9-21.73-13.1-5.7-6-9.6-13.4-11.2-21.5-1.5-7.8-.9-15.9 1.8-23.2 2.7-7.4 7.2-14 13.1-19.3l-.6-.5z"/></svg>',
+            'figma.com': '<svg viewBox="0 0 38 57" xmlns="http://www.w3.org/2000/svg"><path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1abcfe"/><path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z" fill="#0acf83"/><path d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z" fill="#ff7262"/><path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#f24e1e"/><path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#a259ff"/></svg>',
+            'chat.openai.com': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944z"/></svg>',
+            'react.dev': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-11.5 -10.23174 23 20.46348"><circle cx="0" cy="0" r="2.05" fill="#61dafb"/><g stroke="#61dafb" stroke-width="1" fill="none"><ellipse rx="11" ry="4.2"/><ellipse rx="11" ry="4.2" transform="rotate(60)"/><ellipse rx="11" ry="4.2" transform="rotate(120)"/></g></svg>'
+        };
+
+        const rawList = [
+            "Gmail", "YouTube", "Maps", "Anna’s Archive", "Data Viz Project", "Online ICO converter", 
+            "ERDPlus", "Playground AI", "ExcelDataPro", "Circle animated icons", "Vector Icons and Stickers", 
+            "Perplexity AI", "Mockaroo", "Streamlit", "Quadratic", "UCI Machine Learning", "Canva", 
+            "Best AI tools", "شكللي", "pinokio", "Invideo AI", "Socpanel", "وقت الافلام", "Claude", 
+            "Powerdrill", "YouTube Transcript", "Pixabay", "Replit", "Tracksy", "SMM Panel", 
+            "Augie", "Developer Console", "Adobe Acrobat", "Rapid API", "OpenAI Playground", "Blogger", 
+            "مشرفي المواقع", "Publisher Center", "Tech Culture Blog", "FxNewsToday", "Investing.com", 
+            "TemplateMo", "Yumpu", "Gemini API", "Artguru", "Barjeel Art", 
+            "MakerSuite", "Subtitle Translator", "Zapier", "Arabic Text Photoshop", "Bootstrap", 
+            "Photopea", "PDF to Chat", "CodePen", "PICRYL", "FlowGPT", "Fusion Generate", "ChatGPT Prompts", 
+            "Adobe Firefly", "Pexels", "BookAI", "Kaiber", "Z-Library", "YouWrite", "SEO Writing", "PNGWing", 
+            "Gamma", "Stylar", "Split Image", "Matecat", "Suno AI", "Spline", "Unsplash", "Ideogram", 
+            "WebIntoApp", "Huemint", "FlexClip", "Voiceflow", "Tailwind CSS", "Viva.ai", "Diffit", "Make", 
+            "Relume", "Civitai", "GravityWrite", "Udio", "Glasp", "مهمل", "KREA", "Edclub", 
+            "Searcholic", "Nasty Asp", "Yalla Shoot", "Chatbase", "Tune Chat", "KLING AI", "Flask Docs", 
+            "PixVerse", "Video To Blog", "Typing Practice", "WebOas.is", "Pinecone", "Fake Mail Gen", 
+            "LottieFiles", "Bio Link", "Flet", "Cursor", "GigaBrain", "GoEnhance AI", 
+            "Printify", "Font Awesome", "AppSheet", "Glif", "Hugging Face", "SaveFrom", "Apify", "You.com", "CGDream", "ChatGPT", "Epieos", "Have I Been Pwned", "Felo", "KDP Calculator", "Freepik", "Monkeytype", "Aixploria", "O-DAN", "Bolt.new", "BlackBox", "Packt", "Data.gov", "NotebookLM", "Snapclear", "DeepSeek", "Lovable", "React", "Dribbble", "Secret Llama", "Dreamina", "Hailuo AI", "TensorArt", "CopyCoder", "Appwrite", "Cloudflare", "Qwen", "موبيزي", "Weights", "Median", "Mistral AI", "OpenRouter", "Glide", "CodeDesign", "Brandfetch", "Tempo Labs", "Semantic Scholar", "OldMapsOnline", "VectorShift", "Figma", "Rollout", "Manus", "Groq", "Grammarly", "HTML5 UP", "Genspark", "Napkin AI", "Yourware", "TypingClub", "PDFgear", "Sejda", "PDFescape", "10Web", "VODU", "Chai", "Jotform", "CleanPNG", "Stirling PDF", "Trae", "Vite", "Databutton", "MiniMax", "Julius AI", "Smithery", "Lovart", "CodeGeeX", "n8n", "Mocha", "Formester", "v0", "Opal", "Leap", "InfinityFree", "Barnes & Noble", "WeWeb", "EdrawMax", "Jules", "Gandalf", "Skywork", "MindStudio", "Static.run", "Base44", "LongCat AI", "Evernote", "Clerk", "Supabase", "Firecrawl", "Sheet0", "VS Code", "Lumi", "Natively", "Qdrant", "Open Library", "Power BI", "Notion", "Netlify", "Magic Hour", "UPDF", "Chutes", "Anima", "ImageKit", "Databricks", "Docker", "Kimi", "Ollama", "Vercel", "Komposo", "BrowserAct", "Stitch"
+        ];
+
+        function getDomainFromUrl(url) {
+            try {
+                const u = new URL(url);
+                return u.hostname.replace('www.', '');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getIcon(title, url) {
+            const domain = getDomainFromUrl(url);
+            
+            // Check manual SVG overrides first
+            if (domain && svgIcons[domain]) {
+                return svgIcons[domain];
+            }
+
+            // Use Google's Favicon service for everything else (high quality)
+            if (domain) {
+                return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=128" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <div class="fallback" style="display:none">${title.charAt(0).toUpperCase()}</div>`;
+            }
+
+            return `<div class="fallback">${title.charAt(0).toUpperCase()}</div>`;
+        }
+
+        function processData() {
+            const container = document.getElementById('grid');
+            const apps = [];
+            const seen = new Set();
+
+            rawList.forEach(title => {
+                if (seen.has(title)) return;
+                seen.add(title);
+
+                // Logic to determine URL
+                let url = "#";
+                if (manualDatabase[title]) {
+                    url = manualDatabase[title];
+                } else {
+                    // Smart guesser for leftovers not in manual DB
+                    const clean = title.replace(/\s+/g, '').toLowerCase();
+                    if (clean.includes('.')) url = `https://${clean}`;
+                    else url = `https://${clean}.com`;
+                }
+
+                apps.push({ title, url });
+            });
+
+            // Render
+            apps.forEach((app, index) => {
+                const el = document.createElement('a');
+                el.className = 'card';
+                el.href = app.url;
+                el.target = "_blank"; // Open in new tab
+                el.style.animationDelay = `${index * 0.02}s`; // Stagger effect
+                
+                const iconHtml = getIcon(app.title, app.url);
+
+                el.innerHTML = `
+                    <div class="icon-box">${iconHtml}</div>
+                    <div class="card-title">${app.title}</div>
+                `;
+                container.appendChild(el);
+            });
+
+            // Filter logic
+            const searchInput = document.getElementById('search');
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.card');
+                let hasResults = false;
+
+                cards.forEach(card => {
+                    const text = card.querySelector('.card-title').textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        card.style.display = 'flex';
+                        hasResults = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        processData();
+
+    </script>
+</body>
+</html>
